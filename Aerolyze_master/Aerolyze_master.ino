@@ -1,7 +1,6 @@
 #include <painlessMesh.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
-#include <painlessMesh.h>
 
 painlessMesh mesh;
 
@@ -16,16 +15,9 @@ void taskMQ2(void *pvParameters);
 void receivedCallback(uint32_t from, String &msg);
 void MeshTask(void* pvParameters);
 
-#define MESH_PREFIX "meshNetwork"
-#define MESH_PASSWORD "meshpassword"
-#define MESH_PORT 5555
-
 #define MQ2 34
 #define GREEN 18
 #define RED 19
-
-int sensorValue = 0;
-boolean state = false;
 
 struct GasData {
   float gasvalue;
@@ -35,17 +27,21 @@ void setup() {
   Serial.begin(115200);
 
   mesh.setDebugMsgTypes(ERROR | STARTUP | CONNECTION);
-  mesh.init(MESH_PREFIX, MESH_PASSWORD, MESH_PORT);
+  mesh.init(MESH_SSID, MESH_PASSWORD, MESH_PORT);
   mesh.onReceive(&receivedCallback);
 
   pinMode(MQ2, INPUT);
   pinMode(GREEN, OUTPUT);
   pinMode(RED, OUTPUT);
 
+  MQ2Queue = xQueueCreate(5, sizeof(GasData));
+  if (MQ2Queue == NULL) {
+    Serial.println("Failed to create MQ2 queue");
+    while (1);
+  }
+
   xTaskCreate(MQ2task, "MQ2 Task", 4096, NULL, 1, NULL);
   xTaskCreate(MeshTask, "Mesh Task", 4096, NULL, 1, NULL);
-
-  MQ2Queue = xQueueCreate(5, sizeof(GasData));
 }
 
 void loop() {
@@ -54,10 +50,11 @@ void loop() {
 
 void MQ2task(void* pvParameters) {
   while (1) {
-    sensorValue = analogRead(MQ2);
-    Serial.println(sensorValue);
+    GasData gasData;
+    gasData.gasvalue = analogRead(MQ2);
+    Serial.printf("MQ2 Sensor Value: %.2f\n", gasData.gasvalue);
 
-    if (sensorValue > 600) {
+    if (gasData.gasvalue > 600) {
       digitalWrite(GREEN, LOW);
       digitalWrite(RED, HIGH);
     } else {
@@ -65,22 +62,25 @@ void MQ2task(void* pvParameters) {
       digitalWrite(RED, LOW);
     }
 
-    if (xQueueSend(MQ2Queue, &sensorValue, pdMS_TO_TICKS(10)) != pdPASS) {
+    if (xQueueSend(MQ2Queue, &gasData, pdMS_TO_TICKS(10)) != pdPASS) {
       Serial.println("Failed to send MQ2 data to queue");
     } else {
       Serial.println("MQ2 data sent to queue successfully!");
     }
+
+    vTaskDelay(100 / portTICK_PERIOD_MS); // Delay to prevent overwhelming the task
   }
 }
 
 void MeshTask(void* pvParameters) {
-  String msg = String(sensorValue);
+  GasData receivedData;
   while (1) {
-    if (xQueueReceive(MQ2Queue, &sensorValue, portMAX_DELAY) == pdTRUE) {
+    if (xQueueReceive(MQ2Queue, &receivedData, portMAX_DELAY) == pdTRUE) {
+      String msg = String(receivedData.gasvalue);
       mesh.sendBroadcast(msg);
       Serial.printf("Broadcast message: %s\n", msg.c_str());
     }
-    vTaskDelay(500 / portTICK_PERIOD_MS);
+    vTaskDelay(500 / portTICK_PERIOD_MS); // Delay to control broadcast frequency
   }
 }
 
