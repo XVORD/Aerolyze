@@ -1,12 +1,18 @@
-#define BLYNK_TEMPLATE_ID ""
-#define BLYNK_TEMPLATE_NAME ""
-#define BLYNK_AUTH_TOKEN ""
-
 #define BLYNK_PRINT Serial
+#include <painlessMesh.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <BlynkSimpleEsp32.h>
 BlynkTimer timer;
+
+#define MESH_SSID "MeshNetworkSSID"
+#define MESH_PASSWORD "password123"
+#define MESH_PORT 5555
+painlessMesh mesh;
+
+#define BLYNK_TEMPLATE_ID ""
+#define BLYNK_TEMPLATE_NAME ""
+#define BLYNK_AUTH_TOKEN ""
 
 // You should get Auth Token in the Blynk App.
 // Go to the Project Settings (nut icon).

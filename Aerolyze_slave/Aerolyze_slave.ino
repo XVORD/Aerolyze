@@ -1,9 +1,16 @@
+#include <painlessMesh.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <UrlEncode.h>
 #include <time.h>
 
 #define LED_PIN 2
+
+#define MESH_SSID "MeshNetworkSSID"
+#define MESH_PASSWORD "password123"
+#define MESH_PORT 5555
+
+painlessMesh mesh;
 
 // Kredensial WiFi
 const char* ssid = "";
@@ -20,6 +27,7 @@ void activateAlarm();                                                // Fungsi u
 void sendMessage(String message);                                    // Fungsi untuk mengirimkan notifikasi peringatan ke WhatsApp
 void vTimeoutCallback(TimerHandle_t xTimer);                         // Fungsi callback saat timer selesai
 void taskHandleSafe(void* pvParameters);
+void receivedCallback(uint32_t from, String &msg); // Tambahan: Callback untuk menerima pesan mesh
 
 const int timeoutPeriod = 5000;  // Periode timeout = 60 detik (5 detik untuk percobaan)
 TimerHandle_t xTimeoutTimer;     // Timeout timer handle
@@ -41,6 +49,10 @@ void setup() {
   Serial.println("Menghubungkan ke WiFi dengan SSID: " + String(ssid));
   WiFi.begin(ssid, password);
 
+  // Inisialisasi Mesh
+  mesh.init(MESH_SSID, MESH_PASSWORD, &MESH_PORT);
+  mesh.onReceive(receivedCallback);
+
   // Membuat timer
   xTimeoutTimer = xTimerCreate("Timeout Timer", timeoutPeriod, pdFALSE, 0, vTimeoutCallback);
 
@@ -48,12 +60,22 @@ void setup() {
 }
 
 void loop() {
-  // Tidak digunakan
+  mesh.update();// Tidak digunakan
 }
 
 // WiFi Event untuk mencetak informasi bahwa koneksi WiFi berhasil
 void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info) {
   Serial.println("Berhasil terhubung dengan " + String(ssid));
+}
+
+void receivedCallback(uint32_t from, String &msg) {
+  Serial.printf("Pesan diterima dari Node ID %u: %s\n", from, msg.c_str());
+}
+
+// Tambahan: Fungsi untuk mengirim pesan melalui mesh
+void sendMeshMessage(String message) {
+  mesh.sendBroadcast(message);
+  Serial.println("Pesan dikirim ke mesh: " + message);
 }
 
 // Tugas untuk handle gas berbahaya
