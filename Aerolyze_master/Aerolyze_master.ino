@@ -11,10 +11,10 @@ painlessMesh mesh;
 
 QueueHandle_t MQ2Queue;
 
-void sendUptime();
+void MQ2task(void* pvParameters);
 void taskMQ2(void *pvParameters);
 void receivedCallback(uint32_t from, String &msg);
-void sendMessage();
+void MeshTask(void* pvParameters);
 
 #define MESH_PREFIX "meshNetwork"
 #define MESH_PASSWORD "meshpassword"
@@ -42,6 +42,9 @@ void setup() {
   pinMode(GREEN, OUTPUT);
   pinMode(RED, OUTPUT);
 
+  xTaskCreate(MQ2task, "MQ2 Task", 4096, NULL, 1, NULL);
+  xTaskCreate(MeshTask, "Mesh Task", 4096, NULL, 1, NULL);
+
   MQ2Queue = xQueueCreate(5, sizeof(GasData));
 }
 
@@ -49,32 +52,31 @@ void loop() {
   mesh.update();
 }
 
-void sendUptime() {
-  sensorValue = analogRead(MQ2);
-  Serial.println(sensorValue);
+void MQ2task(void* pvParameters) {
+  while (1) {
+    sensorValue = analogRead(MQ2);
+    Serial.println(sensorValue);
 
-  if (sensorValue > 600) {
-    digitalWrite(GREEN, LOW);
-    digitalWrite(RED, HIGH);
-  } else {
-    digitalWrite(GREEN, HIGH);
-    digitalWrite(RED, LOW);
+    if (sensorValue > 600) {
+      digitalWrite(GREEN, LOW);
+      digitalWrite(RED, HIGH);
+    } else {
+      digitalWrite(GREEN, HIGH);
+      digitalWrite(RED, LOW);
+    }
+
+    if (xQueueSend(MQ2Queue, &sensorValue, pdMS_TO_TICKS(10)) != pdPASS) {
+      Serial.println("Failed to send MQ2 data to queue");
+    } else {
+      Serial.println("MQ2 data sent to queue successfully!");
+    }
   }
-
-  if (xQueueSend(MQ2Queue, &sensorValue, pdMS_TO_TICKS(10)) != pdPASS) {
-    Serial.println("Failed to send MQ2 data to queue");
-  } else {
-    Serial.println("MQ2 data sent to queue successfully!");
-  }
-
-  sendMessage();
 }
 
-void sendMessage() {
+void MeshTask(void* pvParameters) {
   String msg = String(sensorValue);
   while (1) {
-    // Menerima data dari queue
-    if (xQueueReceive(MQ2Queue, &sensorValue, portMAX_DELAY) == pdTRUE) { 
+    if (xQueueReceive(MQ2Queue, &sensorValue, portMAX_DELAY) == pdTRUE) {
       mesh.sendBroadcast(msg);
       Serial.printf("Broadcast message: %s\n", msg.c_str());
     }
