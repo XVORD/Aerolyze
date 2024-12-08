@@ -9,7 +9,6 @@ painlessMesh mesh;
 QueueHandle_t MQ2Queue;
 
 void MQ2task(void* pvParameters);
-void taskMQ2(void* pvParameters);
 void receivedCallback(uint32_t from, String& msg);
 void MeshTask(void* pvParameters);
 
