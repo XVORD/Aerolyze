@@ -1,6 +1,4 @@
 #include <painlessMesh.h>
-#include <WiFi.h>
-#include <WiFiClient.h>
 
 painlessMesh mesh;
 
