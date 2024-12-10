@@ -1,4 +1,5 @@
 #include <painlessMesh.h>
+<<<<<<< HEAD
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <UrlEncode.h>
@@ -19,56 +20,93 @@ const char* password = "realmethebest";
 // Dapatkan dari: https://www.electronicwings.com/esp32/send-a-whatsapp-message-using-esp32
 String MobileNumber = "6281386847527";
 String APIKey = "7493606";
+=======
 
-// Deklarasi fungsi
-void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info);  // Fungsi callback saat WiFi terhubung
-void taskHandleGasDetected(void* pvParameters);                      // Task untuk mengirimkan notifikasi serta menghidupkan alarm
-void activateAlarm();                                                // Fungsi untuk menghidupkan LED dan buzzer
-void sendMessage(String message);                                    // Fungsi untuk mengirimkan notifikasi peringatan ke WhatsApp
-void vTimeoutCallback(TimerHandle_t xTimer);                         // Fungsi callback saat timer selesai
-void taskHandleSafe(void* pvParameters);
-void receivedCallback(uint32_t from, String &msg); // Tambahan: Callback untuk menerima pesan mesh
+painlessMesh mesh;
 
-const int timeoutPeriod = 5000;  // Periode timeout = 60 detik (5 detik untuk percobaan)
-TimerHandle_t xTimeoutTimer;     // Timeout timer handle
-TaskHandle_t xTaskHandleSafe;    // Handle untuk taskHandleSafe
+#define MESH_SSID "Mesh_Kelompok_10"
+#define MESH_PASSWORD "Mesh_Kelompok_10"
+#define MESH_PORT 5555
 
-// Flag untuk memastikan notifikasi dan alarm hanya sekali
-bool notificationSent = false;
-bool alarmActivated = false;
+QueueHandle_t MQ2Queue;
+>>>>>>> 2bdd886ebd790ca06203862e3743a84a206cc7ad
+
+void MQ2task(void* pvParameters);
+void receivedCallback(uint32_t from, String& msg);
+void MeshTask(void* pvParameters);
+
+#define MQ2 34
+#define GREEN 18
+#define RED 19
+
+struct GasData {
+  float gasvalue;
+};
 
 void setup() {
-  Serial.begin(115200);  // Memulai komunikasi serial
+  Serial.begin(115200);
 
-  pinMode(LED_PIN, OUTPUT);  // Inisialisasi LED_PIN sebagai output
+  mesh.setDebugMsgTypes(ERROR | STARTUP | CONNECTION);
+  mesh.init(MESH_SSID, MESH_PASSWORD, MESH_PORT);
+  mesh.onReceive(&receivedCallback);
 
-  // Mendaftarkan WiFi event yang digunakan
-  WiFi.onEvent(WiFiStationConnected, ARDUINO_EVENT_WIFI_STA_CONNECTED);
+  pinMode(MQ2, INPUT);
+  pinMode(GREEN, OUTPUT);
+  pinMode(RED, OUTPUT);
 
-  // Memulai koneksi WiFi
-  Serial.println("Menghubungkan ke WiFi dengan SSID: " + String(ssid));
-  WiFi.begin(ssid, password);
+  MQ2Queue = xQueueCreate(5, sizeof(GasData));
+  if (MQ2Queue == NULL) {
+    Serial.println("Failed to create MQ2 queue");
+    while (1)
+      ;
+  }
 
-  // Inisialisasi Mesh
-  mesh.init(MESH_SSID, MESH_PASSWORD, &MESH_PORT);
-  mesh.onReceive(receivedCallback);
-
-  // Membuat timer
-  xTimeoutTimer = xTimerCreate("Timeout Timer", timeoutPeriod, pdFALSE, 0, vTimeoutCallback);
-
-  xTaskCreate(taskHandleGas, "Handle Gas", 4096, NULL, 1, NULL);  // Membuat tugas untuk handle gas berbahaya
+  xTaskCreate(MQ2task, "MQ2 Task", 4096, NULL, 1, NULL);
+  xTaskCreate(MeshTask, "Mesh Task", 4096, NULL, 1, NULL);
 }
 
 void loop() {
-  mesh.update();// Tidak digunakan
+  mesh.update();
 }
 
-// WiFi Event untuk mencetak informasi bahwa koneksi WiFi berhasil
-void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info) {
-  Serial.println("Berhasil terhubung dengan " + String(ssid));
+void MQ2task(void* pvParameters) {
+  while (1) {
+    GasData gasData;
+    gasData.gasvalue = analogRead(MQ2);
+    Serial.printf("MQ2 Sensor Value: %.2f\n", gasData.gasvalue);
+
+    if (gasData.gasvalue > 1200) {
+      digitalWrite(GREEN, LOW);
+      digitalWrite(RED, HIGH);
+    } else {
+      digitalWrite(GREEN, HIGH);
+      digitalWrite(RED, LOW);
+    }
+
+    if (xQueueSend(MQ2Queue, &gasData, pdMS_TO_TICKS(10)) != pdPASS) {
+      Serial.println("Failed to send MQ2 data to queue");
+    } else {
+      Serial.println("MQ2 data sent to queue successfully!");
+    }
+
+    vTaskDelay(5000 / portTICK_PERIOD_MS);  // Delay to prevent overwhelming the task
+  }
+}
+
+void MeshTask(void* pvParameters) {
+  GasData receivedData;
+  while (1) {
+    if (xQueueReceive(MQ2Queue, &receivedData, portMAX_DELAY) == pdTRUE) {
+        String msg = String(receivedData.gasvalue);
+        mesh.sendBroadcast(msg);
+        Serial.printf("Broadcast message: %s\n", msg.c_str());
+    }
+    vTaskDelay(5000 / portTICK_PERIOD_MS);  // Delay to control broadcast frequency
+  }
 }
 
 void receivedCallback(uint32_t from, String &msg) {
+<<<<<<< HEAD
   Serial.printf("Pesan diterima dari Node ID %u: %s\n", from, msg.c_str());
 }
 
@@ -144,4 +182,7 @@ void taskHandleSafe(void* pvParameters) {
   // Menghapus task saat selesai
   xTaskHandleSafe = NULL;
   vTaskDelete(NULL);
+=======
+  Serial.printf("Received from %u: %s\n", from, msg.c_str());
+>>>>>>> 2bdd886ebd790ca06203862e3743a84a206cc7ad
 }
