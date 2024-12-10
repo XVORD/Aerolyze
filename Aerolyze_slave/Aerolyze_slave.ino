@@ -1,26 +1,4 @@
 #include <painlessMesh.h>
-<<<<<<< HEAD
-#include <WiFi.h>
-#include <HTTPClient.h>
-#include <UrlEncode.h>
-#include <time.h>
-
-#define LED_PIN 2
-
-#define MESH_SSID "MeshNetworkSSID"
-#define MESH_PASSWORD "password123"
-#define MESH_PORT "5555"
-
-painlessMesh mesh;
-
-// Kredensial WiFi
-const char* ssid = "realmeC15";
-const char* password = "realmethebest";
-
-// Dapatkan dari: https://www.electronicwings.com/esp32/send-a-whatsapp-message-using-esp32
-String MobileNumber = "6281386847527";
-String APIKey = "7493606";
-=======
 
 painlessMesh mesh;
 
@@ -29,7 +7,6 @@ painlessMesh mesh;
 #define MESH_PORT 5555
 
 QueueHandle_t MQ2Queue;
->>>>>>> 2bdd886ebd790ca06203862e3743a84a206cc7ad
 
 void MQ2task(void* pvParameters);
 void receivedCallback(uint32_t from, String& msg);
@@ -106,83 +83,5 @@ void MeshTask(void* pvParameters) {
 }
 
 void receivedCallback(uint32_t from, String &msg) {
-<<<<<<< HEAD
-  Serial.printf("Pesan diterima dari Node ID %u: %s\n", from, msg.c_str());
-}
-
-// Tugas untuk handle gas berbahaya
-void taskHandleGas(void* pvParameters) {
-  while (true) {
-    if (Serial.available() > 0) {
-      String input = Serial.readStringUntil('\n');
-
-      if (input == "ada") {  // Untuk percobaan, nanti menggunakan data yang diterima dari root
-        if (!notificationSent && !alarmActivated) {
-          notificationSent = true;
-          alarmActivated = true;
-
-          activateAlarm();
-          sendMessage("Gas berbahaya terdeteksi!");
-        }
-      } else {
-        notificationSent = false;
-        alarmActivated = false;
-
-        if (!xTimerIsTimerActive(xTimeoutTimer)) {  // Jika timer tidak aktif
-          xTimerStart(xTimeoutTimer, 0);            // Memulai timer
-          Serial.println("\nMemulai timer untuk mematikan alarm!");
-        }
-      }
-    }
-  }
-}
-
-// Fungsi untuk menghidupkan LED dan buzzer
-void activateAlarm() {
-  digitalWrite(LED_PIN, HIGH);
-  //digitalWrite(BUZZER_PIN, HIGH);
-  Serial.println("ALARM: Gas berbahaya terdeteksi!");
-}
-
-// Fungsi untuk mengirimkan notifikasi peringatan ke WhatsApp
-void sendMessage(String message) {
-  String url = "https://api.callmebot.com/whatsapp.php?phone=" + MobileNumber + "&apikey=" + APIKey + "&text=" + urlEncode(message);
-  HTTPClient http;
-  http.begin(url);
-
-  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-
-  int httpResponseCode = http.POST(url);
-  if (httpResponseCode == 200) {
-    Serial.println("Berhasil mengirimkan notifikasi");
-  } else {
-    Serial.println("Terjadi kesalahan saat mengirimkan notifikasi");
-    Serial.print("HTTP response code: ");
-    Serial.println(httpResponseCode);
-  }
-  http.end();
-}
-
-// Fungsi callback milik timer
-void vTimeoutCallback(TimerHandle_t xTimer) {
-  if (xTaskHandleSafe == NULL) {
-    xTaskCreate(taskHandleSafe, "Handle Safe", 4096, NULL, 1, &xTaskHandleSafe);
-  }
-}
-
-// Tugas untuk mematikan alarm
-void taskHandleSafe(void* pvParameters) {
-  Serial.println("Gas berbahaya tidak terdeteksi. Mematikan alarm!");
-
-  digitalWrite(LED_PIN, LOW);
-  // digitalWrite(BUZZER_PIN, LOW);
-
-  sendMessage("Gas berbahaya sudah tidak terdeteksi!");
-
-  // Menghapus task saat selesai
-  xTaskHandleSafe = NULL;
-  vTaskDelete(NULL);
-=======
   Serial.printf("Received from %u: %s\n", from, msg.c_str());
->>>>>>> 2bdd886ebd790ca06203862e3743a84a206cc7ad
 }
