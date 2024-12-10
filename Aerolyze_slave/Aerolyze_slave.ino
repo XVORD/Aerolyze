@@ -8,17 +8,17 @@
 
 #define MESH_SSID "MeshNetworkSSID"
 #define MESH_PASSWORD "password123"
-#define MESH_PORT 5555
+#define MESH_PORT "5555"
 
 painlessMesh mesh;
 
 // Kredensial WiFi
-const char* ssid = "";
-const char* password = "";
+const char* ssid = "realmeC15";
+const char* password = "realmethebest";
 
 // Dapatkan dari: https://www.electronicwings.com/esp32/send-a-whatsapp-message-using-esp32
-String MobileNumber = "";
-String APIKey = "";
+String MobileNumber = "6281386847527";
+String APIKey = "7493606";
 
 // Deklarasi fungsi
 void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info);  // Fungsi callback saat WiFi terhubung
@@ -70,12 +70,6 @@ void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info) {
 
 void receivedCallback(uint32_t from, String &msg) {
   Serial.printf("Pesan diterima dari Node ID %u: %s\n", from, msg.c_str());
-}
-
-// Tambahan: Fungsi untuk mengirim pesan melalui mesh
-void sendMeshMessage(String message) {
-  mesh.sendBroadcast(message);
-  Serial.println("Pesan dikirim ke mesh: " + message);
 }
 
 // Tugas untuk handle gas berbahaya
