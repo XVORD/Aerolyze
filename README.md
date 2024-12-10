@@ -6,10 +6,10 @@
 
 ## Contributors
 This Final Project made by Group 10:
-- [Aulia Anugrah Aziz] - 2206059364
-- [Aliyah Rizky Al-Afifah Polanda] - 2206024682
-- [Christopher Satya Fredella Balakosa] - 2206059755
-- [Mario Matthews Gunawan] - 2206810452
+- Aulia Anugrah Aziz - (2206059364)
+- Aliyah Rizky Al-Afifah Polanda - (2206024682)
+- Christopher Satya Fredella Balakosa - (2206059755)
+- Mario Matthews Gunawan - (2206810452)
 
 # I. Introduction to the problem and the solution
 
@@ -52,7 +52,7 @@ The program is divided into two parts: the Leaf Program (manages local sensor da
 
 The Root Program serves as the system's central control, handling received data from the leaf nodes, managing alarms, and sending real-time notifications to the user via WhatsApp using the CallMeBot API. Tasks within this program monitor gas levels, trigger alarms when dangerous conditions are detected, and deactivate alerts when conditions return to normal. The program also includes advanced features like a timeout mechanism for alarms and robust error handling for notification delivery. By combining mesh networking, real-time monitoring, and IoT integration, this software ensures a comprehensive and efficient solution for hazardous gas detection and user notification.
 
-Flowchart for using our project:
+Flowchart showing how our project works:
 - **Flowchart:**
   <img width="7634" alt="Diagram Schematic" src="https://cdn.discordapp.com/attachments/859432769956741121/1316050910404935750/231674.jpg?ex=6759a36c&is=675851ec&hm=a72bbec3ca8cae1ec66c3eee46ebfeb4e7a8b5d6758acbc92d3cd7bfae9f4e6d&">
 
@@ -68,6 +68,9 @@ Integration testing combined the leaf and root nodes into a complete system and 
 The system performed effectively in detecting hazardous gases and delivering real-time notifications, with smooth interaction between the leaf and root nodes during testing. However, some performance limitations were noted, including occasional delays or failures in notification delivery due to API server load and variations in response time under different environmental conditions. These findings suggest areas for improvement in notification handling and system responsiveness to enhance reliability in more dynamic real-world scenarios.
 
 # V. Conclusion and Future Work
+Aerolyze is an advanced solution designed to enhance household safety by detecting hazardous gas leaks using the MQ-2 sensor and IoT technology. It monitors gases like LPG and carbon monoxide, which can pose significant health risks. The system uses the ESP32 microcontroller, a mesh network for communication, and a dual-alert mechanism (buzzer and LED) to notify users when dangerous gas levels are detected. Real-time notifications are sent via WhatsApp, keeping users informed even when away from home.
+
+The software is structured into the Leaf Program and Root Program, which handle data collection, processing, and communication. The system uses FreeRTOS for efficient task management and scalability. Integration with IoT and mesh networking ensures seamless communication and real-time alerts. Testing showed that Aerolyze effectively detects gas leaks and meets functional requirements. However, further improvements in notification reliability and response time would enhance the system's performance in diverse environments.
 
 ## Documentation
 
